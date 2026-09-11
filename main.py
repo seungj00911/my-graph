@@ -35,7 +35,6 @@ def load_data():
 
 df = load_data()
 
-
 st.write(f"총 {len(df):,}개의 기록을 불러왔습니다.")
 
 
@@ -72,7 +71,6 @@ fig1 = px.line(
     }
 )
 
-
 fig1.update_traces(
     hovertemplate=(
         "날짜: %{x|%Y-%m-%d}<br>"
@@ -85,12 +83,10 @@ fig1.update_layout(
     hovermode="x unified"
 )
 
-
 st.plotly_chart(
     fig1,
     use_container_width=True
 )
-
 
 st.subheader("이 그래프로 알 수 있는 것")
 
@@ -125,7 +121,6 @@ top5_df = df[
 top5_df = top5_df.sort_values("날짜")
 
 
-# TOP 5 영화를 한 그래프에 표시
 fig2 = px.line(
     top5_df,
     x="날짜",
@@ -140,7 +135,6 @@ fig2 = px.line(
     }
 )
 
-
 fig2.update_traces(
     hovertemplate=(
         "영화: %{fullData.name}<br>"
@@ -150,18 +144,15 @@ fig2.update_traces(
     )
 )
 
-
 fig2.update_layout(
     hovermode="closest",
     legend_title_text="영화"
 )
 
-
 st.plotly_chart(
     fig2,
     use_container_width=True
 )
-
 
 st.subheader("이 그래프로 알 수 있는 것")
 
@@ -171,12 +162,100 @@ st.write(
 
 
 # =======================================
-# 그래프 3. 앞으로 추가할 그래프
+# 그래프 3. 날짜별 TOP 10 일관객 합계
 # =======================================
 st.divider()
 
-st.header("그래프 3. 앞으로 추가할 그래프")
+st.header("그래프 3. 날짜별 TOP 10 일관객 합계")
+
+
+# 날짜별 일관객 합계 계산
+daily_total = (
+    df.groupby("날짜")["일관객"]
+    .sum()
+    .reset_index()
+)
+
+daily_total = daily_total.sort_values("날짜")
+
+
+# 일관객 합계가 가장 큰 날 3일
+top3_days = (
+    daily_total
+    .nlargest(3, "일관객")
+    .sort_values("날짜")
+)
+
+
+# 영역 그래프
+fig3 = px.area(
+    daily_total,
+    x="날짜",
+    y="일관객",
+    title="날짜별 박스오피스 TOP 10 일관객 합계",
+    labels={
+        "날짜": "날짜",
+        "일관객": "TOP 10 일관객 합계"
+    }
+)
+
+
+# 전체 날짜별 마우스오버
+fig3.update_traces(
+    hovertemplate=(
+        "날짜: %{x|%Y-%m-%d}<br>"
+        "TOP 10 관객 합계: %{y:,}명"
+        "<extra></extra>"
+    )
+)
+
+
+# 가장 큰 날 3개를 그래프 위에 표시
+fig3.add_scatter(
+    x=top3_days["날짜"],
+    y=top3_days["일관객"],
+    mode="markers+text",
+    text=[
+        f"{date.strftime('%Y-%m-%d')}<br>{total:,}명"
+        for date, total in zip(
+            top3_days["날짜"],
+            top3_days["일관객"]
+        )
+    ],
+    textposition="top center",
+    marker=dict(
+        size=10
+    ),
+    name="TOP 3"
+)
+
+
+fig3.update_layout(
+    hovermode="x unified",
+    showlegend=True
+)
+
+
+st.plotly_chart(
+    fig3,
+    use_container_width=True
+)
+
+
+st.subheader("이 그래프로 알 수 있는 것")
+
+st.write(
+    "날짜별 박스오피스 TOP 10의 전체 관객 규모와 관객이 가장 많이 몰린 날을 한눈에 확인할 수 있다."
+)
+
+
+# =======================================
+# 그래프 4. 앞으로 추가할 그래프
+# =======================================
+st.divider()
+
+st.header("그래프 4. 앞으로 추가할 그래프")
 
 st.info(
-    "여기에 세 번째 그래프를 추가할 예정입니다."
+    "여기에 네 번째 그래프를 추가할 예정입니다."
 )
