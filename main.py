@@ -24,7 +24,7 @@ DATA_URL = "https://raw.githubusercontent.com/greatsong/modudata/main/data/kobis
 def load_data():
     df = pd.read_csv(DATA_URL)
 
-    # 날짜 열을 진짜 날짜 형식으로 변환
+    # 날짜를 진짜 날짜 형식으로 변환
     df["날짜"] = pd.to_datetime(
         df["날짜"].astype(str),
         format="%Y%m%d"
@@ -103,7 +103,6 @@ st.divider()
 st.header("그래프 2. 일관객 합계 TOP 5 영화")
 
 
-# 영화별 일관객 합계 계산
 top5_movies = (
     df.groupby("영화명")["일관객"]
     .sum()
@@ -112,8 +111,6 @@ top5_movies = (
     .index
 )
 
-
-# TOP 5 영화의 날짜별 데이터만 추출
 top5_df = df[
     df["영화명"].isin(top5_movies)
 ].copy()
@@ -169,7 +166,6 @@ st.divider()
 st.header("그래프 3. 날짜별 TOP 10 일관객 합계")
 
 
-# 날짜별 일관객 합계 계산
 daily_total = (
     df.groupby("날짜")["일관객"]
     .sum()
@@ -179,7 +175,6 @@ daily_total = (
 daily_total = daily_total.sort_values("날짜")
 
 
-# 일관객 합계가 가장 큰 날 3일
 top3_days = (
     daily_total
     .nlargest(3, "일관객")
@@ -187,7 +182,6 @@ top3_days = (
 )
 
 
-# 영역 그래프
 fig3 = px.area(
     daily_total,
     x="날짜",
@@ -199,8 +193,6 @@ fig3 = px.area(
     }
 )
 
-
-# 전체 날짜별 마우스오버
 fig3.update_traces(
     hovertemplate=(
         "날짜: %{x|%Y-%m-%d}<br>"
@@ -210,7 +202,6 @@ fig3.update_traces(
 )
 
 
-# 가장 큰 날 3개를 그래프 위에 표시
 fig3.add_scatter(
     x=top3_days["날짜"],
     y=top3_days["일관객"],
@@ -223,24 +214,19 @@ fig3.add_scatter(
         )
     ],
     textposition="top center",
-    marker=dict(
-        size=10
-    ),
+    marker=dict(size=10),
     name="TOP 3"
 )
-
 
 fig3.update_layout(
     hovermode="x unified",
     showlegend=True
 )
 
-
 st.plotly_chart(
     fig3,
     use_container_width=True
 )
-
 
 st.subheader("이 그래프로 알 수 있는 것")
 
@@ -250,12 +236,85 @@ st.write(
 
 
 # =======================================
-# 그래프 4. 앞으로 추가할 그래프
+# 그래프 4. 영화별 누적 일관객 TOP 10
 # =======================================
 st.divider()
 
-st.header("그래프 4. 앞으로 추가할 그래프")
+st.header("그래프 4. 영화별 일관객 합계 TOP 10")
+
+
+# 영화별 일관객 합계
+movie_total = (
+    df.groupby("영화명")
+    .agg(
+        일관객합계=("일관객", "sum"),
+        **{"10위권_등장일수": ("날짜", "count")}
+    )
+    .reset_index()
+)
+
+
+# 일관객 합계가 가장 큰 TOP 10
+top10_movie = (
+    movie_total
+    .sort_values("일관객합계", ascending=False)
+    .head(10)
+    .sort_values("일관객합계", ascending=True)
+)
+
+
+# 가로 막대그래프
+fig4 = px.bar(
+    top10_movie,
+    x="일관객합계",
+    y="영화명",
+    orientation="h",
+    title="영화별 일관객 합계 TOP 10",
+    labels={
+        "영화명": "영화",
+        "일관객합계": "일관객 합계"
+    },
+    custom_data=["10위권_등장일수"]
+)
+
+
+fig4.update_traces(
+    hovertemplate=(
+        "영화: %{y}<br>"
+        "일관객 합계: %{x:,}명<br>"
+        "10위권에 든 날수: %{customdata[0]}일"
+        "<extra></extra>"
+    )
+)
+
+
+fig4.update_layout(
+    yaxis={
+        "categoryorder": "total ascending"
+    }
+)
+
+
+st.plotly_chart(
+    fig4,
+    use_container_width=True
+)
+
+
+st.subheader("이 그래프로 알 수 있는 것")
+
+st.write(
+    "전체 기간 동안 일관객 합계가 가장 많았던 영화 TOP 10과 각 영화가 박스오피스 10위권에 머문 날수를 비교할 수 있다."
+)
+
+
+# =======================================
+# 그래프 5. 앞으로 추가할 그래프
+# =======================================
+st.divider()
+
+st.header("그래프 5. 앞으로 추가할 그래프")
 
 st.info(
-    "여기에 네 번째 그래프를 추가할 예정입니다."
+    "여기에 다섯 번째 그래프를 추가할 예정입니다."
 )
