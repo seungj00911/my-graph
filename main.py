@@ -236,14 +236,13 @@ st.write(
 
 
 # =======================================
-# 그래프 4. 영화별 누적 일관객 TOP 10
+# 그래프 4. 영화별 일관객 합계 TOP 10
 # =======================================
 st.divider()
 
 st.header("그래프 4. 영화별 일관객 합계 TOP 10")
 
 
-# 영화별 일관객 합계
 movie_total = (
     df.groupby("영화명")
     .agg(
@@ -254,7 +253,6 @@ movie_total = (
 )
 
 
-# 일관객 합계가 가장 큰 TOP 10
 top10_movie = (
     movie_total
     .sort_values("일관객합계", ascending=False)
@@ -263,7 +261,6 @@ top10_movie = (
 )
 
 
-# 가로 막대그래프
 fig4 = px.bar(
     top10_movie,
     x="일관객합계",
@@ -300,7 +297,6 @@ st.plotly_chart(
     use_container_width=True
 )
 
-
 st.subheader("이 그래프로 알 수 있는 것")
 
 st.write(
@@ -309,12 +305,117 @@ st.write(
 
 
 # =======================================
-# 그래프 5. 앞으로 추가할 그래프
+# 그래프 5. 월 × 요일별 일관객 합계 히트맵
 # =======================================
 st.divider()
 
-st.header("그래프 5. 앞으로 추가할 그래프")
+st.header("그래프 5. 월 × 요일별 일관객 합계")
+
+
+# 월과 요일 추출
+heatmap_df = df.copy()
+
+heatmap_df["월"] = heatmap_df["날짜"].dt.month
+heatmap_df["요일번호"] = heatmap_df["날짜"].dt.dayofweek
+
+weekday_names = [
+    "월요일",
+    "화요일",
+    "수요일",
+    "목요일",
+    "금요일",
+    "토요일",
+    "일요일"
+]
+
+heatmap_df["요일"] = heatmap_df["요일번호"].map(
+    dict(enumerate(weekday_names))
+)
+
+
+# 월 × 요일별 일관객 합계
+heatmap_data = (
+    heatmap_df
+    .groupby(["월", "요일번호", "요일"])["일관객"]
+    .sum()
+    .reset_index()
+)
+
+
+# 요일 순서 고정
+heatmap_data["요일"] = pd.Categorical(
+    heatmap_data["요일"],
+    categories=weekday_names,
+    ordered=True
+)
+
+heatmap_data = heatmap_data.sort_values(
+    ["월", "요일번호"]
+)
+
+
+# 피벗 테이블
+heatmap_pivot = heatmap_data.pivot(
+    index="월",
+    columns="요일",
+    values="일관객"
+)
+
+heatmap_pivot = heatmap_pivot.reindex(
+    columns=weekday_names
+)
+
+
+# 히트맵
+fig5 = px.imshow(
+    heatmap_pivot,
+    labels={
+        "x": "요일",
+        "y": "월",
+        "color": "일관객 합계"
+    },
+    x=weekday_names,
+    y=heatmap_pivot.index,
+    aspect="auto",
+    title="월 × 요일별 일관객 합계"
+)
+
+
+fig5.update_traces(
+    hovertemplate=(
+        "%{y}월 %{x}<br>"
+        "일관객 합계: %{z:,}명"
+        "<extra></extra>"
+    )
+)
+
+
+fig5.update_yaxes(
+    dtick=1,
+    autorange="reversed"
+)
+
+
+st.plotly_chart(
+    fig5,
+    use_container_width=True
+)
+
+
+st.subheader("이 그래프로 알 수 있는 것")
+
+st.write(
+    "월과 요일에 따라 박스오피스 TOP 10의 일관객 규모가 어떻게 달라지는지 한눈에 비교할 수 있다."
+)
+
+
+# =======================================
+# 그래프 6. 앞으로 추가할 그래프
+# =======================================
+st.divider()
+
+st.header("그래프 6. 앞으로 추가할 그래프")
 
 st.info(
-    "여기에 다섯 번째 그래프를 추가할 예정입니다."
+    "여기에 여섯 번째 그래프를 추가할 예정입니다."
 )
